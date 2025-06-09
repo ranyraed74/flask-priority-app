@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<!doctype html>
+<html>
+<head><title>نظام إدارة الأولويات</title></head>
+<body>
+  <nav>
+    <a href='/'>الرئيسية</a> |
+    <a href='/suppliers'>الموردين</a> |
+    <a href='/products'>المنتجات</a> |
+    <a href='/inventory'>المخزون</a> |
+    <a href='/sales'>المبيعات</a> |
+    <a href='/payables'>المستحقات</a> |
+    <a href='/priority/settings'>الإعدادات</a> |
+    <a href='/reports'>التقارير</a>
+  </nav>
+  <hr>
+  {% block content %}{% endblock %}
+</body>
+</html>
+{% endblock %}
