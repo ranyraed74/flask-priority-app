@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: flask-prioritization-app
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python fix_flask_app_render_ready.py"
+    plan: free
