@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>تعديل المنتج</h2>
+<form method='post'>
+  <input type='text' name='name' value='{{ product.name }}' placeholder='اسم المنتج'>
+  <input type='text' name='category' value='{{ product.category }}' placeholder='الفئة'>
+  <select name='supplier_id'>
+    {% for s in suppliers %}
+      <option value='{{ s.id }}' {% if product.supplier_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+    {% endfor %}
+  </select>
+  <input type='number' step='0.1' name='purchase_price' value='{{ product.purchase_price }}' placeholder='سعر الشراء'>
+  <input type='number' step='0.1' name='sale_price' value='{{ product.sale_price }}' placeholder='سعر البيع'>
+  <input type='number' name='in_stock' value='{{ product.in_stock }}' placeholder='الكمية'>
+  <button type='submit'>تحديث</button>
+</form>
+{% endblock %}
