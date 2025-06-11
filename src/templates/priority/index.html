@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}أولويات السداد - نظام إدارة أولويات السداد للموردين{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0"><i class="fas fa-sort-amount-down me-2"></i>أولويات السداد</h2>
+            <div>
+                <a href="{{ url_for('priority.calculate') }}" class="btn btn-success">
+                    <i class="fas fa-calculator me-1"></i>إعادة حساب الأولويات
+                </a>
+                <a href="{{ url_for('priority.settings') }}" class="btn btn-primary">
+                    <i class="fas fa-cog me-1"></i>إعدادات الحساب
+                </a>
+            </div>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">قائمة أولويات السداد</h5>
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" id="searchPriorities" class="form-control" placeholder="بحث...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if priorities %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>المورد</th>
+                                <th>معدل دوران المخزون</th>
+                                <th>هامش الربح</th>
+                                <th>الأهمية الاستراتيجية</th>
+                                <th>شروط السداد</th>
+                                <th>المستحقات المتأخرة</th>
+                                <th>درجة الأولوية</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for priority in priorities %}
+                            <tr>
+                                <td>{{ priority.supplier.name }}</td>
+                                <td>{{ priority.turnover_rate|percentage }}</td>
+                                <td>{{ priority.profit_margin|percentage }}</td>
+                                <td>
+                                    {% if priority.strategic_importance == 3 %}
+                                    <span class="badge bg-danger">عالية</span>
+                                    {% elif priority.strategic_importance == 2 %}
+                                    <span class="badge bg-warning">متوسطة</span>
+                                    {% else %}
+                                    <span class="badge bg-success">منخفضة</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ priority.payment_terms }} يوم</td>
+                                <td>{{ priority.overdue_payables|currency }}</td>
+                                <td>
+                                    <div class="progress">
+                                        {% if priority.priority_score >= 80 %}
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ priority.priority_score }}%">
+                                            {{ priority.priority_score }}
+                                        </div>
+                                        {% elif priority.priority_score >= 50 %}
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ priority.priority_score }}%">
+                                            {{ priority.priority_score }}
+                                        </div>
+                                        {% else %}
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ priority.priority_score }}%">
+                                            {{ priority.priority_score }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('priority.details', id=priority.id) }}" class="btn btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('priority.adjust', id=priority.id) }}" class="btn btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>لا توجد بيانات أولويات متاحة حالياً. يرجى النقر على "إعادة حساب الأولويات" لتوليد البيانات.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>توزيع الموردين حسب الأولوية</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>العوامل المؤثرة في الأولوية</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="factorsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>معلومات عن حساب الأولويات</h5>
+            </div>
+            <div class="card-body">
+                <p>يتم حساب أولويات السداد للموردين بناءً على المعايير التالية:</p>
+                <ul>
+                    <li><strong>معدل دوران المخزون:</strong> كلما زاد معدل دوران المخزون، زادت أولوية السداد للمورد.</li>
+                    <li><strong>هامش الربح:</strong> كلما زاد هامش الربح، زادت أولوية السداد للمورد.</li>
+                    <li><strong>الأهمية الاستراتيجية:</strong> تعكس أهمية المورد لعملك وتأثيره على استمرارية النشاط.</li>
+                    <li><strong>شروط السداد:</strong> تؤخذ في الاعتبار مدة السداد المتفق عليها مع المورد.</li>
+                    <li><strong>المستحقات المتأخرة:</strong> تؤثر المستحقات المتأخرة على زيادة أولوية السداد.</li>
+                </ul>
+                <p>يمكنك تعديل أوزان هذه العوامل من خلال صفحة <a href="{{ url_for('priority.settings') }}">إعدادات الحساب</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // بيانات الرسم البياني لتوزيع الموردين حسب الأولوية
+        var ctx1 = document.getElementById('priorityDistributionChart').getContext('2d');
+        var chart1 = new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: ['أولوية عالية', 'أولوية متوسطة', 'أولوية منخفضة'],
+                datasets: [{
+                    data: [
+                        {{ high_priority_count|default(0) }}, 
+                        {{ medium_priority_count|default(0) }}, 
+                        {{ low_priority_count|default(0) }}
+                    ],
+                    backgroundColor: ['#e74a3b', '#f6c23e', '#1cc88a'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+        
+        // بيانات الرسم البياني للعوامل المؤثرة في الأولوية
+        var ctx2 = document.getElementById('factorsChart').getContext('2d');
+        var chart2 = new Chart(ctx2, {
+            type: 'radar',
+            data: {
+                labels: ['معدل الدوران', 'هامش الربح', 'الأهمية الاستراتيجية', 'شروط السداد', 'المستحقات المتأخرة'],
+                datasets: [{
+                    label: 'الأوزان الحالية',
+                    data: [
+                        {{ turnover_weight|default(0) }}, 
+                        {{ profit_margin_weight|default(0) }}, 
+                        {{ strategic_importance_weight|default(0) }}, 
+                        {{ payment_terms_weight|default(0) }}, 
+                        {{ overdue_weight|default(0) }}
+                    ],
+                    backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+        
+        // البحث في جدول الأولويات
+        $("#searchPriorities").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("table tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+{% endblock %}

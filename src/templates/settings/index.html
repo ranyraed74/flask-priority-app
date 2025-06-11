@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+
+{% block title %}الإعدادات - نظام إدارة أولويات السداد للموردين{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="border-bottom pb-2 mb-4"><i class="fas fa-cog me-2"></i>الإعدادات</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="list-group">
+            <a href="#general" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                <i class="fas fa-sliders-h me-2"></i>الإعدادات العامة
+            </a>
+            <a href="#priority" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-sort-amount-down me-2"></i>إعدادات حساب الأولويات
+            </a>
+            <a href="#user" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-user-cog me-2"></i>إعدادات المستخدم
+            </a>
+            <a href="#backup" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-database me-2"></i>النسخ الاحتياطي واستعادة البيانات
+            </a>
+            <a href="#integration" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-plug me-2"></i>التكامل مع أونكس برو
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-9 mb-4">
+        <div class="tab-content">
+            <!-- الإعدادات العامة -->
+            <div class="tab-pane fade show active" id="general">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>الإعدادات العامة</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('settings.update_general') }}" method="post">
+                            <div class="mb-3">
+                                <label for="company_name" class="form-label">اسم الشركة</label>
+                                <input type="text" class="form-control" id="company_name" name="company_name" value="{{ settings.company_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="currency" class="form-label">العملة</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="EGP" {% if settings.currency == 'EGP' %}selected{% endif %}>جنيه مصري (ج.م)</option>
+                                    <option value="USD" {% if settings.currency == 'USD' %}selected{% endif %}>دولار أمريكي ($)</option>
+                                    <option value="EUR" {% if settings.currency == 'EUR' %}selected{% endif %}>يورو (€)</option>
+                                    <option value="SAR" {% if settings.currency == 'SAR' %}selected{% endif %}>ريال سعودي (ر.س)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="date_format" class="form-label">صيغة التاريخ</label>
+                                <select class="form-select" id="date_format" name="date_format">
+                                    <option value="dd/mm/yyyy" {% if settings.date_format == 'dd/mm/yyyy' %}selected{% endif %}>يوم/شهر/سنة (31/12/2025)</option>
+                                    <option value="mm/dd/yyyy" {% if settings.date_format == 'mm/dd/yyyy' %}selected{% endif %}>شهر/يوم/سنة (12/31/2025)</option>
+                                    <option value="yyyy-mm-dd" {% if settings.date_format == 'yyyy-mm-dd' %}selected{% endif %}>سنة-شهر-يوم (2025-12-31)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="fiscal_year_start" class="form-label">بداية السنة المالية</label>
+                                <select class="form-select" id="fiscal_year_start" name="fiscal_year_start">
+                                    <option value="1" {% if settings.fiscal_year_start == 1 %}selected{% endif %}>يناير</option>
+                                    <option value="7" {% if settings.fiscal_year_start == 7 %}selected{% endif %}>يوليو</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="enable_notifications" name="enable_notifications" {% if settings.enable_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="enable_notifications">تفعيل الإشعارات</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>حفظ الإعدادات
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- إعدادات حساب الأولويات -->
+            <div class="tab-pane fade" id="priority">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-sort-amount-down me-2"></i>إعدادات حساب الأولويات</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('settings.update_priority') }}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">أوزان العوامل المؤثرة في حساب الأولوية</label>
+                                <p class="text-muted small">يجب أن يكون مجموع الأوزان 100%</p>
+                                
+                                <div class="mb-3">
+                                    <label for="turnover_weight" class="form-label">معدل دوران المخزون</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="turnover_weight" name="turnover_weight" min="0" max="100" value="{{ priority_settings.turnover_weight }}" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="profit_margin_weight" class="form-label">هامش الربح</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="profit_margin_weight" name="profit_margin_weight" min="0" max="100" value="{{ priority_settings.profit_margin_weight }}" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="strategic_importance_weight" class="form-label">الأهمية الاستراتيجية</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="strategic_importance_weight" name="strategic_importance_weight" min="0" max="100" value="{{ priority_settings.strategic_importance_weight }}" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="payment_terms_weight" class="form-label">شروط السداد</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="payment_terms_weight" name="payment_terms_weight" min="0" max="100" value="{{ priority_settings.payment_terms_weight }}" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="overdue_weight" class="form-label">المستحقات المتأخرة</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="overdue_weight" name="overdue_weight" min="0" max="100" value="{{ priority_settings.overdue_weight }}" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="auto_calculate" class="form-label">حساب الأولويات تلقائياً</label>
+                                <select class="form-select" id="auto_calculate" name="auto_calculate">
+                                    <option value="daily" {% if priority_settings.auto_calculate == 'daily' %}selected{% endif %}>يومياً</option>
+                                    <option value="weekly" {% if priority_settings.auto_calculate == 'weekly' %}selected{% endif %}>أسبوعياً</option>
+                                    <option value="monthly" {% if priority_settings.auto_calculate == 'monthly' %}selected{% endif %}>شهرياً</option>
+                                    <option value="manual" {% if priority_settings.auto_calculate == 'manual' %}selected{% endif %}>يدوياً فقط</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="notify_priority_changes" name="notify_priority_changes" {% if priority_settings.notify_priority_changes %}checked{% endif %}>
+                                <label class="form-check-label" for="notify_priority_changes">إشعار عند تغير الأولويات</label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>حفظ إعدادات الأولويات
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- إعدادات المستخدم -->
+            <div class="tab-pane fade" id="user">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>إعدادات المستخدم</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('settings.update_user') }}" method="post">
+                            <div class="mb-3">
+                                <label for="full_name" class="form-label">الاسم الكامل</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" value="{{ current_user.full_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">البريد الإلكتروني</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="username" class="form-label">اسم المستخدم</label>
+                                <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" required>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">كلمة المرور الحالية</label>
+                                <input type="password" class="form-control" id="current_password" name="current_password">
+                                <div class="form-text">أدخل كلمة المرور الحالية فقط إذا كنت ترغب في تغييرها</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">كلمة المرور الجديدة</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>حفظ إعدادات المستخدم
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- النسخ الاحتياطي واستعادة البيانات -->
+            <div class="tab-pane fade" id="backup">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-database me-2"></i>النسخ الاحتياطي واستعادة البيانات</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h6>إنشاء نسخة احتياطية</h6>
+                            <p>قم بإنشاء نسخة احتياطية كاملة من قاعدة البيانات الحالية.</p>
+                            <form action="{{ url_for('settings.create_backup') }}" method="post">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-download me-1"></i>إنشاء نسخة احتياطية
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="mb-4">
+                            <h6>استعادة البيانات</h6>
+                            <p class="text-danger">تحذير: سيؤدي هذا إلى استبدال جميع البيانات الحالية بالبيانات من النسخة الاحتياطية.</p>
+                            <form action="{{ url_for('settings.restore_backup') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="backup_file" class="form-label">ملف النسخة الاحتياطية</label>
+                                    <input class="form-control" type="file" id="backup_file" name="backup_file" accept=".db,.sql,.dump" required>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="confirm_restore" name="confirm_restore" required>
+                                    <label class="form-check-label" for="confirm_restore">أؤكد أنني أريد استبدال جميع البيانات الحالية</label>
+                                </div>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-upload me-1"></i>استعادة البيانات
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div>
+                            <h6>النسخ الاحتياطية السابقة</h6>
+                            {% if backups %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>اسم الملف</th>
+                                            <th>تاريخ الإنشاء</th>
+                                            <th>حجم الملف</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for backup in backups %}
+                                        <tr>
+                                            <td>{{ backup.filename }}</td>
+                                            <td>{{ backup.created_at|datetime }}</td>
+                                            <td>{{ backup.size|filesize }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ url_for('settings.download_backup', filename=backup.filename) }}" class="btn btn-info">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBackupModal{{ loop.index }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- Modal for Delete Confirmation -->
+                                                <div class="modal fade" id="deleteBackupModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">تأكيد الحذف</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                هل أنت متأكد من حذف النسخة الاحتياطية "{{ backup.filename }}"؟
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                                <form action="{{ url_for('settings.delete_backup', filename=backup.filename) }}" method="post">
+                                                                    <button type="submit" class="btn btn-danger">حذف</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>لا توجد نسخ احتياطية سابقة.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- التكامل مع أونكس برو -->
+            <div class="tab-pane fade" id="integration">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-plug me-2"></i>التكامل مع أونكس برو</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('settings.update_integration') }}" method="post">
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="enable_integration" name="enable_integration" {% if integration_settings.enable_integration %}checked{% endif %}>
+                                <label class="form-check-label" for="enable_integration">تفعيل التكامل مع أونكس برو</label>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="integration_method" class="form-label">طريقة التكامل</label>
+                                <select class="form-select" id="integration_method" name="integration_method">
+                                    <option value="file_import" {% if integration_settings.integration_method == 'file_import' %}selected{% endif %}>استيراد ملفات</option>
+                                    <option value="api" {% if integration_settings.integration_method == 'api' %}selected{% endif %}>واجهة برمجة التطبيقات (API)</option>
+                                    <option value="database" {% if integration_settings.integration_method == 'database' %}selected{% endif %}>اتصال مباشر بقاعدة البيانات</option>
+                                </select>
+                            </div>
+                            
+                            <div id="file_import_settings" class="integration-settings {% if integration_settings.integration_method != 'file_import' %}d-none{% endif %}">
+                                <div class="mb-3">
+                                    <label for="import_directory" class="form-label">مجلد الاستيراد</label>
+                                    <input type="text" class="form-control" id="import_directory" name="import_directory" value="{{ integration_settings.import_directory }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="import_frequency" class="form-label">تكرار الاستيراد</label>
+                                    <select class="form-select" id="import_frequency" name="import_frequency">
+                                        <option value="daily" {% if integration_settings.import_frequency == 'daily' %}selected{% endif %}>يومياً</option>
+                                        <option value="hourly" {% if integration_settings.import_frequency == 'hourly' %}selected{% endif %}>كل ساعة</option>
+                                        <option value="manual" {% if integration_settings.import_frequency == 'manual' %}selected{% endif %}>يدوياً فقط</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="api_settings" class="integration-settings {% if integration_settings.integration_method != 'api' %}d-none{% endif %}">
+                                <div class="mb-3">
+                                    <label for="api_url" class="form-label">عنوان API</label>
+                                    <input type="text" class="form-control" id="api_url" name="api_url" value="{{ integration_settings.api_url }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="api_key" class="form-label">مفتاح API</label>
+                                    <input type="password" class="form-control" id="api_key" name="api_key" value="{{ integration_settings.api_key }}">
+                                </div>
+                            </div>
+                            
+                            <div id="database_settings" class="integration-settings {% if integration_settings.integration_method != 'database' %}d-none{% endif %}">
+                                <div class="mb-3">
+                                    <label for="db_host" class="form-label">خادم قاعدة البيانات</label>
+                                    <input type="text" class="form-control" id="db_host" name="db_host" value="{{ integration_settings.db_host }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="db_port" class="form-label">منفذ قاعدة البيانات</label>
+                                    <input type="number" class="form-control" id="db_port" name="db_port" value="{{ integration_settings.db_port }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="db_name" class="form-label">اسم قاعدة البيانات</label>
+                                    <input type="text" class="form-control" id="db_name" name="db_name" value="{{ integration_settings.db_name }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="db_user" class="form-label">اسم المستخدم</label>
+                                    <input type="text" class="form-control" id="db_user" name="db_user" value="{{ integration_settings.db_user }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="db_password" class="form-label">كلمة المرور</label>
+                                    <input type="password" class="form-control" id="db_password" name="db_password" value="{{ integration_settings.db_password }}">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>حفظ إعدادات التكامل
+                            </button>
+                            
+                            <a href="{{ url_for('import_export.test_connection') }}" class="btn btn-info">
+                                <i class="fas fa-plug me-1"></i>اختبار الاتصال
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // إظهار/إخفاء إعدادات التكامل حسب الطريقة المختارة
+        $('#integration_method').on('change', function() {
+            $('.integration-settings').addClass('d-none');
+            $('#' + $(this).val() + '_settings').removeClass('d-none');
+        });
+        
+        // التحقق من مجموع أوزان العوامل
+        $('form[action="{{ url_for("settings.update_priority") }}"]').on('submit', function(e) {
+            var total = 0;
+            $('#turnover_weight, #profit_margin_weight, #strategic_importance_weight, #payment_terms_weight, #overdue_weight').each(function() {
+                total += parseInt($(this).val()) || 0;
+            });
+            
+            if (total !== 100) {
+                e.preventDefault();
+                alert('يجب أن يكون مجموع أوزان العوامل 100%. المجموع الحالي: ' + total + '%');
+            }
+        });
+        
+        // التحقق من تطابق كلمات المرور
+        $('form[action="{{ url_for("settings.update_user") }}"]').on('submit', function(e) {
+            if ($('#new_password').val() && $('#new_password').val() !== $('#confirm_password').val()) {
+                e.preventDefault();
+                alert('كلمة المرور الجديدة وتأكيدها غير متطابقين.');
+            }
+        });
+    });
+</script>
+{% endblock %}

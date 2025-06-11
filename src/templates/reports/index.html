@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}التقارير - نظام إدارة أولويات السداد للموردين{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="border-bottom pb-2 mb-4"><i class="fas fa-file-alt me-2"></i>التقارير</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-boxes fa-4x text-primary mb-3"></i>
+                <h4 class="card-title">تقرير المخزون</h4>
+                <p class="card-text">عرض تفاصيل المخزون الحالي وقيمته وتوزيعه حسب المورد والفئة.</p>
+                <a href="{{ url_for('reports.inventory') }}" class="btn btn-primary">
+                    <i class="fas fa-eye me-1"></i>عرض التقرير
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-shopping-cart fa-4x text-success mb-3"></i>
+                <h4 class="card-title">تقرير المبيعات</h4>
+                <p class="card-text">تحليل المبيعات حسب الفترة والمنتج والمورد مع رسوم بيانية توضيحية.</p>
+                <a href="{{ url_for('reports.sales') }}" class="btn btn-success">
+                    <i class="fas fa-eye me-1"></i>عرض التقرير
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-money-bill-wave fa-4x text-warning mb-3"></i>
+                <h4 class="card-title">تقرير المستحقات</h4>
+                <p class="card-text">عرض المستحقات الحالية والمتأخرة والمدفوعة مع تحليل التدفقات النقدية.</p>
+                <a href="{{ url_for('reports.payables') }}" class="btn btn-warning">
+                    <i class="fas fa-eye me-1"></i>عرض التقرير
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-sort-amount-down fa-4x text-danger mb-3"></i>
+                <h4 class="card-title">تقرير الأولويات</h4>
+                <p class="card-text">تحليل أولويات السداد للموردين وتوزيعها مع توضيح العوامل المؤثرة.</p>
+                <a href="{{ url_for('reports.priorities') }}" class="btn btn-danger">
+                    <i class="fas fa-eye me-1"></i>عرض التقرير
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-4x text-info mb-3"></i>
+                <h4 class="card-title">تقرير الموردين</h4>
+                <p class="card-text">تحليل شامل للموردين وتصنيفهم حسب الأداء والأهمية الاستراتيجية.</p>
+                <a href="{{ url_for('reports.suppliers') }}" class="btn btn-info">
+                    <i class="fas fa-eye me-1"></i>عرض التقرير
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-4x text-secondary mb-3"></i>
+                <h4 class="card-title">تقرير الأداء</h4>
+                <p class="card-text">تحليل أداء المبيعات والمخزون ومعدلات الدوران على مدار الفترات السابقة.</p>
+                <a href="{{ url_for('reports.performance') }}" class="btn btn-secondary">
+                    <i class="fas fa-eye me-1"></i>عرض التقرير
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-file-export me-2"></i>تصدير التقارير</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('reports.export') }}" method="post" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="report_type" class="form-label">نوع التقرير</label>
+                        <select class="form-select" id="report_type" name="report_type" required>
+                            <option value="" selected disabled>اختر نوع التقرير</option>
+                            <option value="inventory">تقرير المخزون</option>
+                            <option value="sales">تقرير المبيعات</option>
+                            <option value="payables">تقرير المستحقات</option>
+                            <option value="priorities">تقرير الأولويات</option>
+                            <option value="suppliers">تقرير الموردين</option>
+                            <option value="performance">تقرير الأداء</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_range" class="form-label">النطاق الزمني</label>
+                        <select class="form-select" id="date_range" name="date_range">
+                            <option value="current_month">الشهر الحالي</option>
+                            <option value="last_month">الشهر الماضي</option>
+                            <option value="last_3_months">آخر 3 أشهر</option>
+                            <option value="last_6_months">آخر 6 أشهر</option>
+                            <option value="current_year">السنة الحالية</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="export_format" class="form-label">صيغة التصدير</label>
+                        <select class="form-select" id="export_format" name="export_format" required>
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 date-range-custom d-none">
+                        <label for="start_date" class="form-label">تاريخ البداية</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date">
+                    </div>
+                    <div class="col-md-6 date-range-custom d-none">
+                        <label for="end_date" class="form-label">تاريخ النهاية</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date">
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-export me-1"></i>تصدير التقرير
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // إظهار/إخفاء حقول التاريخ المخصص
+        $('#date_range').on('change', function() {
+            if ($(this).val() === 'custom') {
+                $('.date-range-custom').removeClass('d-none');
+            } else {
+                $('.date-range-custom').addClass('d-none');
+            }
+        });
+    });
+</script>
+{% endblock %}
